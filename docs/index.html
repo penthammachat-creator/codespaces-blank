@@ -1,39 +1,25 @@
 <!doctype html>
 <html lang="th">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>PHX — Simulations</title>
-  <link rel="stylesheet" href="./css/app.css">
-</head>
-<body>
-  <header class="hero">
-    <h1>PHX — Simulations</h1>
-    <p>เลือกหัวข้อที่จะทดลอง</p>
-  </header>
-
-  <main class="grid">
-    <a class="card" href="./projectile.html">
-      <div class="thumb">🎯</div>
-      <h3>Projectile Motion</h3>
-      <p>วิถีกระสุน — ปรับ v₀, มุม, และ g</p>
-    </a>
-
-    <!-- เผื่อเพิ่มโมดูลอื่นในอนาคต -->
-    <div class="card disabled">
-      <div class="thumb">〰️</div>
-      <h3>SHM (coming soon)</h3>
-      <p>การสั่นแบบฮาร์มอนิก</p>
-    </div>
-    <div class="card disabled">
-      <div class="thumb">🧱</div>
-      <h3>Inclined Plane (coming soon)</h3>
-      <p>แรงบนพื้นเอียง</p>
-    </div>
-  </main>
-
-  <footer class="foot">
-    <a href="https://github.com/penthammachat-creator/codespaces-blank" target="_blank" rel="noopener">GitHub Repo</a>
-  </footer>
-</body>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PHX Sims — Catalog</title>
+<link rel="icon" href="data:,">
+<style>
+  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin:24px;line-height:1.5}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
+  .card{border:1px solid #ddd;border-radius:12px;padding:16px}
+  .tag{font-size:12px;padding:2px 8px;border-radius:999px;background:#eef}
+  a.btn{display:inline-block;margin-top:8px;padding:8px 12px;border-radius:8px;background:#111;color:#fff;text-decoration:none}
+</style>
+<h1>PHX Simulations</h1>
+<p>เลือกหัวข้อเพื่อเข้าไปยังแบบจำลอง</p>
+<div class="grid">
+  <div class="card">
+    <div class="tag">Mechanics</div>
+    <h3>Projectile (Lab)</h3>
+    <p>ปรับ v₀, θ, g แล้วดูวิถีโพรเจกไทล์</p>
+    <a class="btn" href="projectile/index.html">เปิด</a>
+  </div>
+</div>
+<footer style="margin-top:24px;color:#666">© 2025 PHX Team</footer>
 </html>

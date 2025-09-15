@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="th">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Projectile — PHX</title>
+<link rel="icon" href="data:,">
+<style>
+  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin:20px}
+  canvas{border:1px solid #ddd;border-radius:8px;max-width:100%}
+  .row{display:flex;gap:16px;flex-wrap:wrap;margin:12px 0}
+  .ctrl{min-width:240px}
+  label{font-size:12px;color:#555}
+  output{min-width:56px;display:inline-block;text-align:right}
+  .back{margin-top:12px;display:inline-block}
+</style>
+<h1>Projectile (HTML prototype)</h1>
+<p>Prototype บนเว็บ (เวอร์ชัน JavaFX จะเป็นตัวหลัก)</p>
+
+<canvas id="cv" width="900" height="420"></canvas>
+
+<div class="row">
+  <div class="ctrl">
+    <label>ความเร็วต้น v₀ (m/s): <output id="ov0">12</output></label><br>
+    <input id="v0" type="range" min="5" max="30" value="12" step="1">
+  </div>
+  <div class="ctrl">
+    <label>มุม θ (°): <output id="oth">25</output></label><br>
+    <input id="th" type="range" min="0" max="80" value="25" step="1">
+  </div>
+  <div class="ctrl">
+    <label>g (m/s²): <output id="og">9.81</output></label><br>
+    <input id="g" type="range" min="1.62" max="10" value="9.81" step="0.01">
+  </div>
+  <button id="reset">Reset</button>
+</div>
+
+<a class="back" href="../index.html">← กลับหน้า Catalog</a>
+
+<script>
+const cv = document.getElementById('cv');
+const cx = cv.getContext('2d');
+const v0 = document.getElementById('v0');
+const th = document.getElementById('th');
+const g  = document.getElementById('g');
+const ov0=document.getElementById('ov0');
+const oth=document.getElementById('oth');
+const og =document.getElementById('og');
+document.getElementById('reset').onclick = () => { v0.value=12; th.value=25; g.value=9.81; draw(); };
+[v0,th,g].forEach(inp => inp.addEventListener('input', draw));
+
+function tof(v0,th,g){ th*=Math.PI/180; return (2*v0*Math.sin(th))/g; }
+function draw(){
+  ov0.textContent=v0.value; oth.textContent=th.value; og.textContent=Number(g.value).toFixed(2);
+  const V=+v0.value, T=+th.value, G=+g.value;
+  const thRad=T*Math.PI/180, totalT=tof(V,T,G), dt=1/120, scale=10;
+  cx.clearRect(0,0,cv.width,cv.height);
+  const groundY=cv.height-40;
+  cx.strokeStyle="#000"; cx.beginPath(); cx.moveTo(20,groundY); cx.lineTo(cv.width-20,groundY); cx.stroke();
+
+  cx.strokeStyle="#c0f"; cx.beginPath();
+  let xPrev=0,yPrev=0, first=true;
+  for(let t=0;t<=totalT+1e-6;t+=dt){
+    const x=V*Math.cos(thRad)*t;
+    const y=V*Math.sin(thRad)*t - 0.5*G*t*t;
+    const sx=40 + x*scale, sy=groundY - y*scale;
+    if(first){ cx.moveTo(sx,sy); first=false; } else { cx.lineTo(sx,sy); }
+    xPrev=x; yPrev=y;
+  }
+  cx.stroke();
+
+  // จุดปล่อย
+  cx.fillStyle="#088";
+  cx.beginPath(); cx.arc(40,groundY,6,0,Math.PI*2); cx.fill();
+}
+draw();
+</script>
+</html>
