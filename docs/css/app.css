@@ -1,0 +1,31 @@
+:root{--bg:#0b1220;--panel:#0f172a;--text:#e5e7eb;--muted:#94a3b8;--accent:#7c3aed}
+*{box-sizing:border-box} body{margin:0;font:16px/1.5 ui-sans-serif,system-ui; color:var(--text); background:#0a0f18}
+.hero{padding:48px 16px;text-align:center;background:linear-gradient(120deg,#0f172a, #111827)}
+.hero h1{margin:0 0 8px;font-size:28px}
+.grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));padding:24px;max-width:1100px;margin:0 auto}
+.card{background:#111827;border:1px solid #1f2937;border-radius:16px;padding:16px;text-decoration:none;color:var(--text);transition:transform .15s,border .15s}
+.card:hover{transform:translateY(-3px);border-color:#334155}
+.card .thumb{font-size:42px;margin-bottom:8px}
+.card.disabled{opacity:.5;pointer-events:none}
+
+.toolbar{display:flex;gap:12px;align-items:center;padding:12px 16px;background:#0f172a;border-bottom:1px solid #1f2937}
+.toolbar h1{margin:0;font-size:20px}
+.toolbar .back{color:var(--muted);text-decoration:none}
+.layout{display:grid;grid-template-columns:1fr 300px;gap:16px;max-width:1200px;margin:16px auto;padding:0 16px}
+.stage{background:#0b1020;border:1px solid #1f2937;border-radius:16px;position:relative;overflow:hidden}
+.transport{position:absolute;right:12px;bottom:12px;display:flex;gap:8px}
+.transport button{background:#1f2937;color:var(--text);border:none;border-radius:10px;padding:8px 12px;cursor:pointer}
+.transport button:hover{background:#334155}
+
+.panel{background:var(--panel);border:1px solid #1f2937;border-radius:16px;padding:16px}
+.panel h2{margin:4px 0 12px}
+.kv{display:flex;justify-content:space-between;padding:4px 0}
+.kv strong{font-weight:700}
+.control{margin:12px 0}
+.control label{display:block;margin-bottom:6px;color:var(--muted)}
+.control .val{font-size:13px;color:var(--muted);margin-top:4px}
+.presets{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.presets button{background:#1f2937;color:var(--text);border:none;border-radius:10px;padding:6px 10px;cursor:pointer}
+.presets button:hover{background:#334155}
+
+canvas{display:block;width:100%;height:auto;background:linear-gradient(#0b1020,#0c1224)}
