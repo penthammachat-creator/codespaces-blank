@@ -17,6 +17,8 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
+import phx.core.Projectile;
+
 
 public class App extends Application {
 
@@ -196,20 +198,18 @@ public class App extends Application {
     }
 
     // --- physics ---
-    private double totalFlightTime() {
-        double th = Math.toRadians(theta);
-        return (2 * v0 * Math.sin(th)) / g;
-    }
+private double totalFlightTime() {
+    return Projectile.timeOfFlight(v0, theta, g);
+}
 
-    private double range() {
-        double th = Math.toRadians(theta);
-        return (v0 * v0 * Math.sin(2 * th)) / g;
-    }
+private double range() {
+    return Projectile.range(v0, theta, g);
+}
 
-    private double hmax() {
-        double th = Math.toRadians(theta);
-        return (Math.pow(v0 * Math.sin(th), 2)) / (2 * g);
-    }
+private double hmax() {
+    return Projectile.hMax(v0, theta, g);
+}
+
 
     private void draw() {
         // update info
