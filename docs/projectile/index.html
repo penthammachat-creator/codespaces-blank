@@ -1,77 +1,392 @@
 <!doctype html>
 <html lang="th">
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Projectile — PHX</title>
 <link rel="icon" href="data:,">
 <style>
-  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin:20px}
-  canvas{border:1px solid #ddd;border-radius:8px;max-width:100%}
-  .row{display:flex;gap:16px;flex-wrap:wrap;margin:12px 0}
-  .ctrl{min-width:240px}
-  label{font-size:12px;color:#555}
-  output{min-width:56px;display:inline-block;text-align:right}
-  .back{margin-top:12px;display:inline-block}
+  :root{
+    --bg:#0b0f14;
+    --panel:#0f1620;
+    --panel-2:#121c29;
+    --border:#1d2a3a;
+    --text:#c7d2e0;
+    --muted:#7f91a8;
+    --primary:#9cff6a;         /* neon green (HTB vibe) */
+    --primary-weak:#9cff6a22;
+    --accent:#7ae0ff;
+    --danger:#ff6b6b;
+    --radius:14px;
+    --shadow:0 10px 30px rgba(0,0,0,.45);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:radial-gradient(1200px 600px at 70% -10%,#0e1825 0%,transparent 60%) ,var(--bg);
+    color:var(--text); font:14px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif;
+    letter-spacing:.2px;
+  }
+  a{color:var(--accent); text-decoration:none}
+  .wrap{max-width:1200px; margin:24px auto; padding:0 16px}
+
+  /* header */
+  .top{display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:18px;}
+  .brand{display:flex; align-items:center; gap:12px}
+  .pill{display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border:1px solid var(--border);
+        border-radius:999px; background:linear-gradient(180deg,var(--panel),var(--panel-2)); color:var(--muted)}
+  .brand h1{font-size:18px; margin:0; letter-spacing:.4px}
+  .badge{font-size:12px; color:#93a6be}
+  .back{opacity:.8}
+  .back:hover{opacity:1}
+
+  /* layout */
+  .grid{display:grid; gap:16px; grid-template-columns: 1.2fr 340px;}
+  @media (max-width: 980px){ .grid{grid-template-columns:1fr} }
+
+  .panel{
+    background:linear-gradient(180deg,var(--panel),var(--panel-2));
+    border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow);
+  }
+
+  /* canvas area */
+  .stage{padding:12px}
+  canvas{display:block; width:100%; height:auto; border-radius:10px; background:#0a1118;}
+  .metric-bar{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:10px}
+  .metric{background:#0a1118; border:1px dashed #132235; border-radius:10px; padding:10px 12px;}
+  .metric .k{font-size:11px; color:var(--muted)}
+  .metric .v{font-size:20px; font-weight:700; color:var(--primary)}
+  .spark{height:36px; width:100%; display:block}
+
+  /* side controls */
+  .side{padding:14px}
+  .card{
+    border:1px solid var(--border);
+    background:radial-gradient(600px 280px at 110% -50%, #19321844 0%, transparent 55%), #0d1520;
+    border-radius:12px; padding:12px; margin-bottom:12px;
+  }
+  .card h3{margin:0 0 6px 0; font-size:13px; text-transform:uppercase; letter-spacing:.6px; color:#9ab3cf}
+  .row{display:flex; gap:10px; align-items:center; justify-content:space-between; margin:8px 0}
+  label{font-size:12px; color:#97abc6}
+  output{min-width:64px; text-align:right; color:var(--text)}
+  input[type="range"]{width:100%}
+  .sl{display:flex; gap:12px; align-items:center}
+
+  .btns{display:flex; gap:8px; flex-wrap:wrap}
+  .btn{
+    appearance:none; border:1px solid var(--border); color:var(--text); background:linear-gradient(180deg,#121d2a,#0f1824);
+    padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:600; letter-spacing:.2px;
+    transition:.15s transform ease, .15s border-color ease, .15s background ease;
+  }
+  .btn:hover{transform:translateY(-1px); border-color:#25405e}
+  .btn.primary{background:linear-gradient(180deg,#1b2a15,#0c1609); border-color:#27401b; color:#dfffe2}
+  .btn.primary .dot{display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--primary); margin-right:8px; box-shadow:0 0 10px var(--primary)}
+  .btn.warn{border-color:#3c2b2b; background:linear-gradient(180deg,#241212,#1b1010); color:#ffdcdc}
+
+  .muted{color:var(--muted)}
+  .foot{margin-top:16px; text-align:center; color:var(--muted); font-size:12px}
 </style>
-<h1>Projectile (HTML prototype)</h1>
-<p>Prototype บนเว็บ (เวอร์ชัน JavaFX จะเป็นตัวหลัก)</p>
 
-<canvas id="cv" width="900" height="420"></canvas>
+<div class="wrap">
+  <div class="top">
+    <div class="brand">
+      <span class="pill">PHX • Mechanics</span>
+      <h1>Projectile (Web)</h1>
+      <span class="badge">HTB-style UI</span>
+    </div>
+    <a class="back pill" href="../index.html">← Back to Catalog</a>
+  </div>
 
-<div class="row">
-  <div class="ctrl">
-    <label>ความเร็วต้น v₀ (m/s): <output id="ov0">12</output></label><br>
-    <input id="v0" type="range" min="5" max="30" value="12" step="1">
+  <div class="grid">
+    <!-- Left: canvas + metrics -->
+    <div class="panel stage">
+      <canvas id="cv" width="960" height="460" aria-label="Projectile trajectory"></canvas>
+
+      <div class="metric-bar">
+        <div class="metric">
+          <div class="k">Range R (m)</div>
+          <div class="v" id="mR">0.00</div>
+          <canvas class="spark" id="spr"></canvas>
+        </div>
+        <div class="metric">
+          <div class="k">Max height H (m)</div>
+          <div class="v" id="mH">0.00</div>
+          <canvas class="spark" id="sph"></canvas>
+        </div>
+        <div class="metric">
+          <div class="k">Flight time T (s)</div>
+          <div class="v" id="mT">0.00</div>
+          <canvas class="spark" id="spt"></canvas>
+        </div>
+      </div>
+
+      <div class="foot muted">Space = Play/Pause • S = Slow/Normal • R = Reset</div>
+    </div>
+
+    <!-- Right: controls -->
+    <aside class="panel side">
+      <div class="card">
+        <h3>Transport</h3>
+        <div class="btns">
+          <button class="btn primary" id="play"><span class="dot"></span><span id="playLabel">Play</span></button>
+          <button class="btn" id="speed">Slow</button>
+          <button class="btn warn" id="reset">Reset</button>
+        </div>
+        <div class="muted" style="margin-top:8px">Status: <span id="statusText">Idle</span></div>
+      </div>
+
+      <div class="card">
+        <h3>Parameters</h3>
+        <div class="row sl"><label>Initial speed v₀ (m/s)</label><output id="ov0">12</output></div>
+        <input id="v0" type="range" min="5" max="40" value="12" step="1" />
+        <div class="row sl"><label>Angle θ (deg)</label><output id="oth">25</output></div>
+        <input id="th" type="range" min="0" max="80" value="25" step="1" />
+        <div class="row sl"><label>Gravity g (m/s²)</label><output id="og">9.81</output></div>
+        <input id="g" type="range" min="1.62" max="12" value="9.81" step="0.01" />
+      </div>
+
+      <div class="card">
+        <h3>Presets</h3>
+        <div class="btns">
+          <button class="btn" data-pre="base">Base</button>
+          <button class="btn" data-pre="far">Max Range (45°)</button>
+          <button class="btn" data-pre="steep">Steep (70°)</button>
+          <button class="btn" data-pre="moon">Moon</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Live outputs</h3>
+        <div class="row"><span class="muted">x(t)</span><span id="ox">0.00 m</span></div>
+        <div class="row"><span class="muted">y(t)</span><span id="oy">0.00 m</span></div>
+        <div class="row"><span class="muted">t</span><span id="ot">0.00 s</span></div>
+      </div>
+    </aside>
   </div>
-  <div class="ctrl">
-    <label>มุม θ (°): <output id="oth">25</output></label><br>
-    <input id="th" type="range" min="0" max="80" value="25" step="1">
-  </div>
-  <div class="ctrl">
-    <label>g (m/s²): <output id="og">9.81</output></label><br>
-    <input id="g" type="range" min="1.62" max="10" value="9.81" step="0.01">
-  </div>
-  <button id="reset">Reset</button>
 </div>
 
-<a class="back" href="../index.html">← กลับหน้า Catalog</a>
-
 <script>
+/* ===== Math core ===== */
+const Physics = {
+  tof(v0, thetaDeg, g){ const th = thetaDeg * Math.PI/180; return (2*v0*Math.sin(th))/g; },
+  range(v0, thetaDeg, g){ const th = thetaDeg * Math.PI/180; return (v0*v0*Math.sin(2*th))/g; },
+  hmax(v0, thetaDeg, g){ const th = thetaDeg * Math.PI/180; const vy=v0*Math.sin(th); return (vy*vy)/(2*g); },
+  pos(v0, thetaDeg, g, t){
+    const th = thetaDeg * Math.PI/180;
+    const x = v0*Math.cos(th)*t;
+    const y = v0*Math.sin(th)*t - 0.5*g*t*t;
+    return {x,y};
+  }
+};
+
+/* ===== Elements ===== */
 const cv = document.getElementById('cv');
-const cx = cv.getContext('2d');
-const v0 = document.getElementById('v0');
-const th = document.getElementById('th');
-const g  = document.getElementById('g');
+const cx = cv.getContext('2d',{alpha:false});
+const v0In = document.getElementById('v0');
+const thIn = document.getElementById('th');
+const gIn  = document.getElementById('g');
 const ov0=document.getElementById('ov0');
 const oth=document.getElementById('oth');
 const og =document.getElementById('og');
-document.getElementById('reset').onclick = () => { v0.value=12; th.value=25; g.value=9.81; draw(); };
-[v0,th,g].forEach(inp => inp.addEventListener('input', draw));
+const mR=document.getElementById('mR');
+const mH=document.getElementById('mH');
+const mT=document.getElementById('mT');
+const ox=document.getElementById('ox');
+const oy=document.getElementById('oy');
+const ot=document.getElementById('ot');
+const playBtn=document.getElementById('play');
+const playLabel=document.getElementById('playLabel');
+const speedBtn=document.getElementById('speed');
+const resetBtn=document.getElementById('reset');
+const statusText=document.getElementById('statusText');
+const presetBtns=[...document.querySelectorAll('[data-pre]')];
+const spr = document.getElementById('spr').getContext('2d');
+const sph = document.getElementById('sph').getContext('2d');
+const spt = document.getElementById('spt').getContext('2d');
 
-function tof(v0,th,g){ th*=Math.PI/180; return (2*v0*Math.sin(th))/g; }
+/* ===== State ===== */
+let v0 = +v0In.value, th = +thIn.value, g = +gIn.value;
+let running=false, t=0, speed=0.25;     // 0.25 ~ Slow (HTB style), toggle -> 1.0
+let tprev=0;
+let seriesR=[], seriesH=[], seriesT=[];
+
+/* ===== Helpers ===== */
+function groundY(){ return cv.height-52; }
+function toScreen(x,y,scale){   // world->screen
+  return [ 40 + x*scale, groundY() - y*scale ];
+}
+function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+function format(n, p=2){ return Number(n).toFixed(p); }
+function setStatus(s){ statusText.textContent=s; }
+
+/* tiny sparkline */
+function drawSpark(ctx, data, color="#9cff6a"){
+  const w=ctx.canvas.width, h=ctx.canvas.height;
+  ctx.clearRect(0,0,w,h);
+  ctx.strokeStyle="#142538"; ctx.strokeRect(0.5,0.5,w-1,h-1);
+  if(!data.length){return}
+  const max=Math.max(...data), min=Math.min(...data);
+  const n=data.length;
+  ctx.beginPath(); ctx.strokeStyle=color; ctx.lineWidth=1.5;
+  for(let i=0;i<n;i++){
+    const x=(i/(n-1||1))*(w-6)+3;
+    const y = h-3 - ((data[i]-min)/((max-min)||1))*(h-6);
+    (i?ctx.lineTo(x,y):ctx.moveTo(x,y));
+  }
+  ctx.stroke();
+}
+
+/* ===== Draw main scene ===== */
 function draw(){
-  ov0.textContent=v0.value; oth.textContent=th.value; og.textContent=Number(g.value).toFixed(2);
-  const V=+v0.value, T=+th.value, G=+g.value;
-  const thRad=T*Math.PI/180, totalT=tof(V,T,G), dt=1/120, scale=10;
-  cx.clearRect(0,0,cv.width,cv.height);
-  const groundY=cv.height-40;
-  cx.strokeStyle="#000"; cx.beginPath(); cx.moveTo(20,groundY); cx.lineTo(cv.width-20,groundY); cx.stroke();
+  cx.fillStyle="#0a1118";
+  cx.fillRect(0,0,cv.width,cv.height);
 
-  cx.strokeStyle="#c0f"; cx.beginPath();
-  let xPrev=0,yPrev=0, first=true;
-  for(let t=0;t<=totalT+1e-6;t+=dt){
-    const x=V*Math.cos(thRad)*t;
-    const y=V*Math.sin(thRad)*t - 0.5*G*t*t;
-    const sx=40 + x*scale, sy=groundY - y*scale;
-    if(first){ cx.moveTo(sx,sy); first=false; } else { cx.lineTo(sx,sy); }
-    xPrev=x; yPrev=y;
+  // ground
+  const gy=groundY();
+  cx.strokeStyle="#102031"; cx.lineWidth=2;
+  cx.beginPath(); cx.moveTo(16,gy); cx.lineTo(cv.width-16,gy); cx.stroke();
+
+  // axis ticks
+  cx.strokeStyle="#0f2032";
+  for(let x=40;x<cv.width-20;x+=60){ cx.beginPath(); cx.moveTo(x,gy); cx.lineTo(x,gy-6); cx.stroke(); }
+  for(let y=gy;y>60;y-=60){ cx.beginPath(); cx.moveTo(36,y); cx.lineTo(42,y); cx.stroke(); }
+
+  // compute totals + scale
+  const T = Physics.tof(v0, th, g);
+  const R = Math.max(0.01, Physics.range(v0, th, g));
+  const H = Math.max(0.01, Physics.hmax(v0, th, g));
+
+  const sx = (cv.width - 100) / R;
+  const sy = (gy - 60) / H;
+  const scale = Math.max(2, Math.min(sx, sy)); // พยายามให้พอดีจอ
+
+  // draw trajectory
+  cx.strokeStyle = "#9cff6a";
+  cx.lineWidth = 2;
+  cx.beginPath();
+  let first = true;
+  const dt = Math.max(0.004, T / 300); // 300 segments
+  for (let tt = 0; tt <= T + 1e-6; tt += dt) {
+    const p = Physics.pos(v0, th, g, tt);
+    const [xx, yy] = toScreen(p.x, Math.max(0, p.y), scale);
+    if (first){ cx.moveTo(xx, yy); first=false; } else { cx.lineTo(xx, yy); }
   }
   cx.stroke();
 
-  // จุดปล่อย
-  cx.fillStyle="#088";
-  cx.beginPath(); cx.arc(40,groundY,6,0,Math.PI*2); cx.fill();
+  // moving ball
+  const tt = clamp(t, 0, T);
+  const p = Physics.pos(v0, th, g, tt);
+  const [bx, by] = toScreen(p.x, Math.max(0, p.y), scale);
+  cx.fillStyle = "#7ae0ff";
+  cx.beginPath(); cx.arc(bx, by, 5.5, 0, Math.PI*2); cx.fill();
+  cx.strokeStyle="#1a3a4f"; cx.lineWidth=2; cx.stroke();
+
+  // labels (soft)
+  cx.fillStyle = "#7f91a8";
+  cx.font = "12px system-ui, -apple-system, Segoe UI, Roboto";
+  cx.fillText("0 m", 42, gy+18);
+
+  // metrics text (DOM)
+  mR.textContent = format(R);
+  mH.textContent = format(H);
+  mT.textContent = format(T);
+  ox.textContent = `${format(Math.max(0,p.x))} m`;
+  oy.textContent = `${format(Math.max(0,p.y))} m`;
+  ot.textContent = `${format(tt)} s`;
+
+  // update sparklines (เก็บ 60 จุดล่าสุด)
+  seriesR.push(R); if(seriesR.length>60) seriesR.shift();
+  seriesH.push(H); if(seriesH.length>60) seriesH.shift();
+  seriesT.push(T); if(seriesT.length>60) seriesT.shift();
+  drawSpark(spr, seriesR, "#9cff6a");
+  drawSpark(sph, seriesH, "#7ae0ff");
+  drawSpark(spt, seriesT, "#ffd36b");
 }
+
+/* ===== Animation loop ===== */
+function tick(now){
+  if(!running){ return; }
+  if(!tprev) tprev = now;
+  const elapsed = (now - tprev) / 1000;
+  tprev = now;
+
+  const T = Physics.tof(v0, th, g);
+  t += elapsed * (speed || 1.0);
+  if (t >= T){
+    t = T;
+    draw();
+    pause();
+    return;
+  }
+  draw();
+  requestAnimationFrame(tick);
+}
+
+/* ===== Controls ===== */
+function play(){
+  if (running) return;
+  running = true;
+  tprev = 0;
+  playLabel.textContent = "Pause";
+  setStatus("Running");
+  requestAnimationFrame(tick);
+}
+
+function pause(){
+  if (!running) return;
+  running = false;
+  playLabel.textContent = "Play";
+  setStatus("Paused");
+}
+
+function reset(){
+  pause();
+  t = 0;
+  setStatus("Idle");
+  draw();
+}
+
+function togglePlay(){ running ? pause() : play(); }
+function toggleSpeed(){
+  // HTB vibe: default Slow 0.25; toggle Normal 1.0
+  speed = (speed === 1.0) ? 0.25 : 1.0;
+  speedBtn.textContent = (speed === 1.0) ? "Normal" : "Slow";
+}
+
+/* ===== Events ===== */
+v0In.addEventListener('input', () => { v0 = +v0In.value; ov0.textContent=v0In.value; reset(); });
+thIn.addEventListener('input', () => { th = +thIn.value; oth.textContent=thIn.value; reset(); });
+gIn.addEventListener('input',  () => { g  = +gIn.value;  og.textContent=gIn.value;  reset(); });
+
+playBtn.addEventListener('click', togglePlay);
+speedBtn.addEventListener('click', toggleSpeed);
+resetBtn.addEventListener('click', reset);
+
+// Presets
+const PRESETS = {
+  base:  { v0:12, th:25, g:9.81 },
+  far:   { v0:20, th:45, g:9.81 },
+  steep: { v0:14, th:70, g:9.81 },
+  moon:  { v0:12, th:45, g:1.62 },
+};
+presetBtns.forEach(b=>{
+  b.addEventListener('click', ()=>{
+    const p = PRESETS[b.dataset.pre];
+    if(!p) return;
+    v0In.value=p.v0; thIn.value=p.th; gIn.value=p.g;
+    ov0.textContent=p.v0; oth.textContent=p.th; og.textContent=p.g;
+    v0=p.v0; th=p.th; g=p.g;
+    reset();
+  });
+});
+
+// Keyboard: Space toggle, S speed, R reset
+window.addEventListener('keydown', (e)=>{
+  if (e.code === 'Space'){ e.preventDefault(); togglePlay(); }
+  else if (e.key === 's' || e.key === 'S'){ toggleSpeed(); }
+  else if (e.key === 'r' || e.key === 'R'){ reset(); }
+});
+
+// First paint
 draw();
 </script>
 </html>
