@@ -8,6 +8,7 @@
   :root{
     --bg:#0b0f14; --panel:#0f1620; --panel2:#121c29; --border:#1d2a3a;
     --text:#c7d2e0; --muted:#7f91a8; --primary:#9cff6a; --accent:#7ae0ff; --radius:14px;
+    --beam:#d3aa72; --beamEdge:#8a6b3f;
   }
   *{box-sizing:border-box}
   html,body{height:100%}
@@ -16,14 +17,14 @@
     color:var(--text); font:14px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif;
   }
   a{color:var(--accent); text-decoration:none}
-  .wrap{max-width:1100px; margin:24px auto; padding:0 16px}
+  .wrap{max-width:1180px; margin:24px auto; padding:0 16px}
 
   .top{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px}
   .pill{display:inline-flex; gap:8px; align-items:center; padding:6px 10px; border:1px solid var(--border); border-radius:999px;
         background:linear-gradient(180deg,var(--panel),var(--panel2)); color:#93a6be}
   h1{margin:0; font-size:18px}
 
-  .grid{display:grid; gap:16px; grid-template-columns: 1fr 260px}
+  .grid{display:grid; gap:16px; grid-template-columns: 1fr 290px}
   @media (max-width: 980px){ .grid{grid-template-columns:1fr} }
 
   .panel{
@@ -33,60 +34,54 @@
     padding:14px;
   }
 
-  /* Board */
-  #board{position:relative; height:520px; background:linear-gradient(#0e2030 0 64%, #1b8030aa 64% 100%); border-radius:12px}
-  .ground{position:absolute; left:0; right:0; bottom:0; height:36%; background:linear-gradient(#1b803044,#1b803000); border-bottom-left-radius:12px; border-bottom-right-radius:12px}
+  /* board */
+  #board{position:relative; height:560px; border-radius:12px; overflow:hidden;}
+  .sky{position:absolute; inset:0; background:#0b1b2a;}
+  .ground{position:absolute; left:0; right:0; bottom:0; height:38%; background:linear-gradient(#1b803044,#1b803000);}
 
-  /* pivot + beam */
-  .pivot { position:absolute; left:50%; bottom:160px; transform:translateX(-50%); width:28px; height:120px; background:#2b3a4c; border:1px solid #375068; border-radius:6px; }
-  .pivot:after{ content:""; position:absolute; top:-10px; left:50%; transform:translateX(-50%); width:18px; height:18px; border-radius:50%; background:#cbd6e2; border:2px solid #7a8da6; }
+  /* pivot */
+  .pivot { position:absolute; left:50%; bottom:172px; transform:translateX(-50%); width:30px; height:128px; background:#2b3a4c; border:1px solid #375068; border-radius:6px; }
+  .pivot:after{ content:""; position:absolute; top:-12px; left:50%; transform:translateX(-50%); width:18px; height:18px; border-radius:50%; background:#cbd6e2; border:2px solid #7a8da6; }
 
-  .beam-wrap{ position:absolute; left:50%; bottom:220px; transform:translateX(-50%) rotate(0deg); transform-origin:50% 20px; transition:transform .15s ease-out; }
-  .beam{ width:720px; height:20px; background:#d3aa72; border:2px solid #8a6b3f; border-radius:8px; position:relative; overflow:visible; }
-  .slot-mark{ position:absolute; top:2px; width:2px; height:16px; background:#6e5736aa; opacity:.7; transition:opacity .15s }
-  .slots-hidden .slot-mark{ opacity:.15 }          /* จางลงเมื่อเป็นโหมด Free */
+  /* beam */
+  .beam-wrap{ position:absolute; left:50%; bottom:232px; transform:translateX(-50%) rotate(0deg); transform-origin:50% 20px; transition:transform .18s ease-out; }
+  .beam{ width:720px; height:22px; border-radius:8px; position:relative; background:var(--beam); border:2px solid var(--beamEdge);}
+  /* slot marks */
+  .slot-mark{ position:absolute; top:2px; width:2px; height:18px; background:#6e5736aa }
 
-  /* masses */
+  /* mass */
   .mass{ width:44px; height:44px; border-radius:8px; color:#091018; display:flex; align-items:center; justify-content:center; font-weight:800;
-         border:2px solid #1b2a3a; box-shadow:0 6px 16px #0008; position:absolute; cursor:grab; user-select:none; }
+         border:2px solid #1b2a3a; box-shadow:0 6px 16px #0008; position:absolute; cursor:grab; user-select:none; transform:translate(-50%,-50%); }
   .mass[data-mass="1"]{background:#c7ebff}
   .mass[data-mass="2"]{background:#9dd6ff}
   .mass[data-mass="5"]{background:#7ae0ff}
   .mass[data-mass="10"]{background:#9cff6a}
-  .ghost{opacity:.45; filter:saturate(.5)}
+  .ghost{opacity:.45; filter:saturate(.6)}
 
-  /* Palette */
-  .card h3{margin:0 0 8px 0; color:#9ab3cf; text-transform:uppercase; font-size:12px; letter-spacing:.6px}
+  /* palette */
+  aside h3{margin:0 0 10px 0; color:#9ab3cf; text-transform:uppercase; font-size:12px; letter-spacing:.6px}
   .palette{display:grid; grid-template-columns:repeat(2,1fr); gap:10px}
-  .palette .mass{position:relative; static:initial; border:1px dashed #2b405b; box-shadow:none; width:56px; height:56px; cursor:grab}
-  .palette .mass span{pointer-events:none}
+  .palette .mass{position:relative; border:1px dashed #2b405b; box-shadow:none; width:56px; height:56px; transform:none}
   .note{color:#93a6be; font-size:12px; margin-top:8px}
 
   /* HUD */
-  .hud{position:absolute; left:14px; top:14px; display:flex; gap:12px; font-size:12px; color:#a8bdd6}
+  .hud{position:absolute; left:14px; top:14px; display:flex; gap:12px; font-size:12px; color:#a8bdd6; z-index:3}
   .hud .pill{padding:6px 10px}
 
-  /* Mode bar (เหมือนปุ่มในรูป) */
-  .modebar{
-    position:absolute; left:50%; bottom:14px; transform:translateX(-50%);
-    display:flex; align-items:center; gap:10px;
-    background:linear-gradient(180deg,#0f1b28,#0b131c); border:1px solid #233447;
-    border-radius:14px; padding:10px 12px; box-shadow:0 8px 20px #0006;
-  }
-  .mode-icon{
-    width:120px; height:56px; border-radius:10px; border:1px solid #1f2f41;
-    display:flex; align-items:center; justify-content:center; font-size:13px; color:#a8bdd6; opacity:.85;
-    background:linear-gradient(#19324a,#0f1f31);
-  }
-  .mode-icon.active{ outline:2px solid #59b6ff55; opacity:1 }
+  /* mode switch */
+  .modebar{position:absolute; left:50%; bottom:18px; transform:translateX(-50%); display:flex; gap:12px; align-items:center; z-index:3}
   .toggle{
-    width:64px; height:28px; border-radius:999px; background:#0b141f; border:1px solid #223240; position:relative;
+    display:flex; align-items:center; gap:10px; background:linear-gradient(180deg,#0f1620,#101a26); border:1px solid #1f2c3d;
+    padding:10px; border-radius:14px; box-shadow:0 6px 18px #0006;
   }
-  .knob{
-    position:absolute; top:2px; left:2px; width:24px; height:24px; border-radius:50%;
-    background:#dce9f7; box-shadow:0 2px 6px #0006; transition:left .15s;
+  .btn{
+    min-width:110px; text-align:center; padding:10px 14px; border-radius:10px; border:1px solid #2c3c52;
+    background:linear-gradient(180deg,#0f1722,#0d141c); color:#d5e4f5; font-weight:600; cursor:pointer;
   }
-  .free .knob{ left:38px; }
+  .btn.active{border-color:#27401b; background:linear-gradient(180deg,#1b2a15,#0c1609); color:#eaffea;}
+  .switch{appearance:none; width:56px; height:28px; background:#0d141c; border:1px solid #2c3c52; border-radius:999px; position:relative; cursor:pointer}
+  .switch::after{content:""; position:absolute; top:3px; left:4px; width:20px; height:20px; border-radius:50%; background:#93a6be; transition:left .18s}
+  .switch:checked::after{left:32px}
 </style>
 
 <div class="wrap">
@@ -100,6 +95,7 @@
     <!-- Board -->
     <div class="panel" id="boardPanel">
       <div id="board">
+        <div class="sky"></div>
         <div class="hud">
           <span class="pill">Torque L: <b id="tL">0</b></span>
           <span class="pill">Torque R: <b id="tR">0</b></span>
@@ -109,14 +105,17 @@
         <div class="beam-wrap" id="beamWrap">
           <div class="beam" id="beam"></div>
         </div>
+
         <div class="pivot"></div>
         <div class="ground"></div>
 
-        <!-- Mode bar -->
-        <div id="modeBar" class="modebar">
-          <div id="icoSnap" class="mode-icon active" title="Snap to slots">Snap</div>
-          <div id="toggle" class="toggle"><div class="knob"></div></div>
-          <div id="icoFree" class="mode-icon" title="Free placement">Free</div>
+        <!-- Mode switch -->
+        <div class="modebar">
+          <div class="toggle">
+            <button class="btn" id="btnBuild">Build</button>
+            <input type="checkbox" id="modeSwitch" class="switch" />
+            <button class="btn" id="btnRelease">Release</button>
+          </div>
         </div>
       </div>
     </div>
@@ -130,80 +129,79 @@
         <div class="mass" data-mass="5"><span>5 kg</span></div>
         <div class="mass" data-mass="10"><span>10 kg</span></div>
       </div>
-      <div class="note">โหมด <b>Snap</b> จะล็อกวัตถุเข้าขีดบนคาน • โหมด <b>Free</b> วางอิสระ</div>
-      <div class="note">ลากก้อนที่อยู่บนคานออกนอกคาน เพื่อเอาออก</div>
+      <div class="note">โหมด <b>Build</b> วางของได้เฉพาะตำแหน่งขีดบนคาน (snap)<br>โหมด <b>Release</b> ปล่อยคานให้เอียงตามแรงบิด</div>
+      <div class="note">ลากก้อนที่อยู่บนคานออกนอกคานเพื่อเอาออก</div>
     </aside>
   </div>
 </div>
 
 <script>
-/* ==== Elements & Const ==== */
+/* ==== Elements / Config ==== */
 const beamWrap = document.getElementById('beamWrap');
-const beam = document.getElementById('beam');
-const palette = document.getElementById('palette');
-const modeBar = document.getElementById('modeBar');
-const icoSnap = document.getElementById('icoSnap');
-const icoFree = document.getElementById('icoFree');
-const toggle = document.getElementById('toggle');
+const beam     = document.getElementById('beam');
+const palette  = document.getElementById('palette');
 
 const tL = document.getElementById('tL');
 const tR = document.getElementById('tR');
-const ang = document.getElementById('ang');
+const ang= document.getElementById('ang');
 
-const SLOT_PX = 28;
-const SLOT_COUNT = 12;     // ตำแหน่ง -12..+12
-const MASS_Y = -52;        // ยกเหนือแนวคานเล็กน้อย
-const MAX_ANGLE = 15;
-const TORQUE_TO_ANGLE = 0.9;
+const btnBuild   = document.getElementById('btnBuild');
+const btnRelease = document.getElementById('btnRelease');
+const modeSwitch = document.getElementById('modeSwitch');
 
-const wrapRect  = () => beamWrap.getBoundingClientRect();
+const SLOT_PX    = 36;         // ระยะห่างของแต่ละบล็อค
+const SLOT_COUNT = 12;         // จำนวนบล็อคซ้าย/ขวา
+const MAX_ANGLE  = 15;         // องศาสูงสุด
+const TORQUE_TO_ANGLE = 0.9;   // factor แปลงแรงบิด -> องศา
 
-let snapMode = true;       // ค่าเริ่มต้น: Snap
-const onBeam = [];         // {el, mass, slotIndex?, x?, y?}
+let mode = 'build';            // 'build' or 'release'
 
-/* ==== วาดขีด slot บนคาน ==== */
-(function drawSlots(){
-  const cx = beam.clientWidth/2;
-  for (let i=-SLOT_COUNT;i<=SLOT_COUNT;i++){
-    const d = document.createElement('div');
-    d.className = 'slot-mark';
-    d.style.left = (cx + i*SLOT_PX - 1) + 'px';
-    beam.appendChild(d);
+/* ==== Helpers ==== */
+function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+function slotX(index){ return beam.clientWidth/2 + index*SLOT_PX; }
+function nearestIndexByClientX(clientX){
+  const r = beam.getBoundingClientRect();
+  const relX = clientX - r.left;
+  const idx  = Math.round((relX - beam.clientWidth/2)/SLOT_PX);
+  return clamp(idx, -SLOT_COUNT, SLOT_COUNT);
+}
+
+/* draw slot marks */
+(function(){
+  for(let i=-SLOT_COUNT;i<=SLOT_COUNT;i++){
+    const x = slotX(i);
+    const m = document.createElement('div');
+    m.className='slot-mark';
+    m.style.left = (x-1)+'px';
+    beam.appendChild(m);
   }
 })();
 
-/* ==== Helpers ==== */
-const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
-const nearestSlot = clientX=>{
-  const r = wrapRect();
-  const x = clientX - r.left;
-  const cx = beam.clientWidth/2;
-  return clamp(Math.round((x - cx)/SLOT_PX), -SLOT_COUNT, SLOT_COUNT);
-};
-const slotXpx = idx => beam.clientWidth/2 + idx*SLOT_PX;
+/* ==== State ==== */
+const onBeam = [];              // {el, mass, slot}
+const occ    = new Map();       // slot -> obj
 
+/* ==== Recalc torques & angle ==== */
 function recalc(){
   let L=0,R=0;
-  onBeam.forEach(o=>{
-    let idx;
-    if (snapMode && typeof o.slotIndex==='number') {
-      idx = o.slotIndex;
-    } else {
-      const cx = beam.clientWidth/2;
-      idx = (o.x - cx)/SLOT_PX; // ตีความเป็นช่องทศนิยม
-    }
-    if (idx<0) L += o.mass * Math.abs(idx);
-    else if (idx>0) R += o.mass * Math.abs(idx);
-  });
+  for(const o of onBeam){
+    if(o.slot < 0) L += o.mass * Math.abs(o.slot);
+    else if(o.slot > 0) R += o.mass * Math.abs(o.slot);
+  }
   tL.textContent = L.toFixed(2);
   tR.textContent = R.toFixed(2);
-  const theta = clamp((R-L)*TORQUE_TO_ANGLE, -MAX_ANGLE, MAX_ANGLE);
+
+  const net = R - L;
+  const theta = (mode==='release')
+    ? clamp(net * TORQUE_TO_ANGLE, -MAX_ANGLE, MAX_ANGLE)
+    : 0;
+
   ang.textContent = theta.toFixed(1)+'°';
   beamWrap.style.transform = `translateX(-50%) rotate(${theta}deg)`;
 }
 
-/* ==== Drag & Drop ==== */
-let dragging=null; // { el, mass, fromPalette, fromBeamObj? }
+/* ==== Drag & Drop (snap) ==== */
+let dragging=null;
 
 function createMassEl(mass){
   const el = document.createElement('div');
@@ -212,109 +210,127 @@ function createMassEl(mass){
   el.innerHTML = `<span>${mass} kg</span>`;
   return el;
 }
+
 function startDragFromPalette(src){
   const mass = +src.dataset.mass;
-  const el = createMassEl(mass);
-  el.classList.add('ghost');
-  document.body.appendChild(el);
-  dragging = {el, mass, fromPalette:true};
-}
-function startDragFromBeam(obj){
-  const ghost = createMassEl(obj.mass);
-  ghost.classList.add('ghost');
+  const ghost = createMassEl(mass); ghost.classList.add('ghost');
   document.body.appendChild(ghost);
-  dragging = {el:ghost, mass:obj.mass, fromPalette:false, fromBeamObj:obj};
+  dragging = {el:ghost, mass, fromPalette:true};
+}
+
+function startDragFromBeam(obj){
+  // remove from beam temporarily
+  occ.delete(obj.slot);
+  const idx = onBeam.indexOf(obj);
+  if(idx>=0) onBeam.splice(idx,1);
+  const ghost = createMassEl(obj.mass); ghost.classList.add('ghost');
+  document.body.appendChild(ghost);
   beamWrap.removeChild(obj.el);
-  const i = onBeam.indexOf(obj);
-  if (i>=0) onBeam.splice(i,1);
+  dragging = {el:ghost, mass:obj.mass, fromPalette:false};
   recalc();
 }
+
 function onMouseMove(e){
   if(!dragging) return;
-  const el = dragging.el;
+  const el=dragging.el;
   el.style.position='fixed';
   el.style.left = (e.clientX - el.offsetWidth/2)+'px';
   el.style.top  = (e.clientY - el.offsetHeight/2)+'px';
 }
+
 function cancelDrag(){
   if(!dragging) return;
-  dragging.el.remove();
-  dragging=null;
+  dragging.el.remove(); dragging=null;
 }
+
+function nearestFreeSlot(target){
+  // ถ้าตำแหน่งนั้นว่าง ใช้เลย; ถ้าไม่ว่าง ให้หาใกล้ที่สุดที่ว่าง
+  if(!occ.has(target)) return target;
+  for(let d=1; d<=SLOT_COUNT; d++){
+    const a = target-d, b = target+d;
+    if(a>=-SLOT_COUNT && !occ.has(a)) return a;
+    if(b<= SLOT_COUNT && !occ.has(b)) return b;
+  }
+  return null; // เต็ม
+}
+
+function placeOnBeam(mass, slot){
+  const el = createMassEl(mass);
+  el.style.left = slotX(slot)+'px';
+  el.style.bottom = '34px';
+  el.onmousedown = ()=> {
+    const obj = occ.get(slot);
+    if(obj) startDragFromBeam(obj), bindDoc();
+  };
+  beamWrap.appendChild(el);
+  const obj = {el, mass, slot};
+  onBeam.push(obj); occ.set(slot,obj);
+}
+
 function finishDrag(e){
   if(!dragging) return;
-  const r = wrapRect();
+  // inside beam area?
+  const r = beam.getBoundingClientRect();
   const inside = (e.clientX>=r.left && e.clientX<=r.right &&
-                  e.clientY>=r.top-80 && e.clientY<=r.bottom+40);
+                  e.clientY>=r.top-80 && e.clientY<=r.bottom+60);
   if(inside){
-    let placed = dragging.fromPalette ? createMassEl(dragging.mass)
-                                      : dragging.fromBeamObj.el;
-    placed.style.position='absolute';
-    placed.style.transform='translate(-50%,-50%)';
-
-    let ref;
-    if (snapMode){
-      const idx = nearestSlot(e.clientX);
-      placed.style.left = (slotXpx(idx))+'px';
-      placed.style.bottom = (20 - MASS_Y)+'px';
-      placed.style.top = '';
-      ref = { el: placed, mass: dragging.mass, slotIndex: idx };
-    } else {
-      const x=e.clientX - r.left;
-      const y=e.clientY - r.top;
-      placed.style.left = x+'px';
-      placed.style.top  = y+'px';
-      placed.style.bottom = '';   // ใช้ top ในโหมด Free
-      ref = { el: placed, mass: dragging.mass, x, y };
+    const idx = nearestIndexByClientX(e.clientX);
+    const free = nearestFreeSlot(idx);
+    if(free!==null){
+      placeOnBeam(dragging.mass, free);
+      recalc();
     }
-
-    placed.onmousedown = ()=>{ startDragFromBeam(ref); bindHandlers(); };
-    beamWrap.appendChild(placed);
-    onBeam.push(ref);
-    recalc();
   }
   cancelDrag();
 }
-function bindHandlers(){
-  document.addEventListener('mousemove', onMouseMove);
-  document.addEventListener('mouseup', ev=>{
-    document.removeEventListener('mousemove', onMouseMove);
+
+function bindDoc(){
+  document.addEventListener('mousemove',onMouseMove);
+  document.addEventListener('mouseup',(ev)=>{
+    document.removeEventListener('mousemove',onMouseMove);
     finishDrag(ev);
-  }, {once:true});
+  },{once:true});
 }
 
-/* Palette events */
+/* palette events */
 palette.querySelectorAll('.mass').forEach(m=>{
-  m.addEventListener('mousedown', ()=>{
-    startDragFromPalette(m);
-    bindHandlers();
+  m.addEventListener('mousedown',()=>{
+    startDragFromPalette(m); bindDoc();
   });
 });
-beamWrap.addEventListener('mousedown', e=>{
+
+/* delegate from beam (remove & drag) */
+beamWrap.addEventListener('mousedown',(e)=>{
   const el = e.target.closest('.mass');
   if(!el) return;
-  const obj = onBeam.find(o=>o.el===el);
+  // find obj by slot (by position)
+  const obj = [...occ.values()].find(o=>o.el===el);
   if(!obj) return;
-  startDragFromBeam(obj);
-  bindHandlers();
+  startDragFromBeam(obj); bindDoc();
 });
 
-/* ==== Mode toggle ==== */
-function setMode(isSnap){
-  snapMode = isSnap;
-  modeBar.classList.toggle('free', !isSnap);
-  icoSnap.classList.toggle('active', isSnap);
-  icoFree.classList.toggle('active', !isSnap);
-  beam.classList.toggle('slots-hidden', !isSnap);
+/* ==== Mode switch ==== */
+function setMode(newMode){
+  mode = newMode;
+  modeSwitch.checked = (mode==='release');
+  btnBuild.classList.toggle('active', mode==='build');
+  btnRelease.classList.toggle('active', mode==='release');
   recalc();
 }
-toggle.addEventListener('click', ()=> setMode(!snapMode));
-icoSnap.addEventListener('click', ()=> setMode(true));
-icoFree.addEventListener('click', ()=> setMode(false));
+btnBuild.onclick   = ()=> setMode('build');
+btnRelease.onclick = ()=> setMode('release');
+modeSwitch.onchange= ()=> setMode(modeSwitch.checked?'release':'build');
 
-/* Init */
-window.addEventListener('resize', recalc);
-setMode(true);   // เริ่มที่ Snap
+/* init */
+setMode('build');
 recalc();
+
+/* responsiveness */
+window.addEventListener('resize', ()=>{
+  // อัปเดตตำแหน่งมวลบนคานเมื่อขนาดเปลี่ยน
+  for(const o of onBeam){
+    o.el.style.left = slotX(o.slot)+'px';
+  }
+});
 </script>
 </html>
