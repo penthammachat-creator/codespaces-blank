@@ -12,7 +12,7 @@
     --border:#1d2a3a;
     --text:#c7d2e0;
     --muted:#7f91a8;
-    --primary:#9cff6a;         /* neon green (HTB vibe) */
+    --primary:#9cff6a;
     --primary-weak:#9cff6a22;
     --accent:#7ae0ff;
     --danger:#ff6b6b;
@@ -22,7 +22,8 @@
   *{box-sizing:border-box}
   html,body{height:100%}
   body{
-    margin:0; background:radial-gradient(1200px 600px at 70% -10%,#0e1825 0%,transparent 60%) ,var(--bg);
+    margin:0;
+    background:radial-gradient(1200px 600px at 70% -10%,#0e1825 0%,transparent 60%),var(--bg);
     color:var(--text); font:14px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif;
     letter-spacing:.2px;
   }
@@ -35,9 +36,7 @@
   .pill{display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border:1px solid var(--border);
         border-radius:999px; background:linear-gradient(180deg,var(--panel),var(--panel-2)); color:var(--muted)}
   .brand h1{font-size:18px; margin:0; letter-spacing:.4px}
-  .badge{font-size:12px; color:#93a6be}
-  .back{opacity:.8}
-  .back:hover{opacity:1}
+  .back{opacity:.8} .back:hover{opacity:1}
 
   /* layout */
   .grid{display:grid; gap:16px; grid-template-columns: 1.2fr 340px;}
@@ -91,7 +90,6 @@
     <div class="brand">
       <span class="pill">PHX • Mechanics</span>
       <h1>Projectile (Web)</h1>
-      
     </div>
     <a class="back pill" href="../index.html">← Back to Catalog</a>
   </div>
@@ -142,6 +140,8 @@
         <input id="th" type="range" min="0" max="80" value="25" step="1" />
         <div class="row sl"><label>Gravity g (m/s²)</label><output id="og">9.81</output></div>
         <input id="g" type="range" min="1.62" max="12" value="9.81" step="0.01" />
+        <div class="row sl"><label>Launcher height y₀ (m)</label><output id="oy0">0.00</output></div>
+        <input id="y0" type="range" min="0" max="15" value="0" step="0.1" />
       </div>
 
       <div class="card">
@@ -151,6 +151,8 @@
           <button class="btn" data-pre="far">Max Range (45°)</button>
           <button class="btn" data-pre="steep">Steep (70°)</button>
           <button class="btn" data-pre="moon">Moon</button>
+          <button class="btn" data-pre="tower5">Tower y₀=5</button>
+          <button class="btn" data-pre="tower10">Tower y₀=10</button>
         </div>
       </div>
 
@@ -165,15 +167,29 @@
 </div>
 
 <script>
-/* ===== Math core ===== */
+/* ===== Math core (support y0) ===== */
 const Physics = {
-  tof(v0, thetaDeg, g){ const th = thetaDeg * Math.PI/180; return (2*v0*Math.sin(th))/g; },
-  range(v0, thetaDeg, g){ const th = thetaDeg * Math.PI/180; return (v0*v0*Math.sin(2*th))/g; },
-  hmax(v0, thetaDeg, g){ const th = thetaDeg * Math.PI/180; const vy=v0*Math.sin(th); return (vy*vy)/(2*g); },
-  pos(v0, thetaDeg, g, t){
+  tof(v0, thetaDeg, g, y0=0){
+    // solve y(t) = y0 + v0*sinθ*t - 0.5*g*t^2 = 0  (take positive root)
+    const th = thetaDeg * Math.PI/180;
+    const vy = v0 * Math.sin(th);
+    const disc = vy*vy + 2*g*y0;
+    return (vy + Math.sqrt(Math.max(0,disc))) / g;
+  },
+  range(v0, thetaDeg, g, y0=0){
+    const th = thetaDeg * Math.PI/180;
+    const vx = v0 * Math.cos(th);
+    return vx * Physics.tof(v0, thetaDeg, g, y0);
+  },
+  hmax(v0, thetaDeg, g, y0=0){
+    const th = thetaDeg * Math.PI/180;
+    const vy = v0 * Math.sin(th);
+    return y0 + (vy*vy)/(2*g);
+  },
+  pos(v0, thetaDeg, g, t, y0=0){
     const th = thetaDeg * Math.PI/180;
     const x = v0*Math.cos(th)*t;
-    const y = v0*Math.sin(th)*t - 0.5*g*t*t;
+    const y = y0 + v0*Math.sin(th)*t - 0.5*g*t*t;
     return {x,y};
   }
 };
@@ -184,9 +200,11 @@ const cx = cv.getContext('2d',{alpha:false});
 const v0In = document.getElementById('v0');
 const thIn = document.getElementById('th');
 const gIn  = document.getElementById('g');
+const y0In = document.getElementById('y0');
 const ov0=document.getElementById('ov0');
 const oth=document.getElementById('oth');
 const og =document.getElementById('og');
+const oy0=document.getElementById('oy0');
 const mR=document.getElementById('mR');
 const mH=document.getElementById('mH');
 const mT=document.getElementById('mT');
@@ -204,15 +222,15 @@ const sph = document.getElementById('sph').getContext('2d');
 const spt = document.getElementById('spt').getContext('2d');
 
 /* ===== State ===== */
-let v0 = +v0In.value, th = +thIn.value, g = +gIn.value;
-let running=false, t=0, speed=0.25;     // 0.25 ~ Slow (HTB style), toggle -> 1.0
+let v0 = +v0In.value, th = +thIn.value, g = +gIn.value, y0 = +y0In.value;
+let running=false, t=0, speed=0.25;
 let tprev=0;
 let seriesR=[], seriesH=[], seriesT=[];
 
 /* ===== Helpers ===== */
 function groundY(){ return cv.height-52; }
-function toScreen(x,y,scale){   // world->screen
-  return [ 40 + x*scale, groundY() - y*scale ];
+function toScreen(x,y,scale){
+  return [ 80 + x*scale, groundY() - y*scale ];
 }
 function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
 function format(n, p=2){ return Number(n).toFixed(p); }
@@ -240,33 +258,59 @@ function draw(){
   cx.fillStyle="#0a1118";
   cx.fillRect(0,0,cv.width,cv.height);
 
-  // ground
   const gy=groundY();
+
+  // ground line
   cx.strokeStyle="#102031"; cx.lineWidth=2;
   cx.beginPath(); cx.moveTo(16,gy); cx.lineTo(cv.width-16,gy); cx.stroke();
 
   // axis ticks
   cx.strokeStyle="#0f2032";
-  for(let x=40;x<cv.width-20;x+=60){ cx.beginPath(); cx.moveTo(x,gy); cx.lineTo(x,gy-6); cx.stroke(); }
-  for(let y=gy;y>60;y-=60){ cx.beginPath(); cx.moveTo(36,y); cx.lineTo(42,y); cx.stroke(); }
+  for(let x=80;x<cv.width-20;x+=60){ cx.beginPath(); cx.moveTo(x,gy); cx.lineTo(x,gy-6); cx.stroke(); }
+  for(let y=gy;y>60;y-=60){ cx.beginPath(); cx.moveTo(76,y); cx.lineTo(82,y); cx.stroke(); }
 
-  // compute totals + scale
-  const T = Physics.tof(v0, th, g);
-  const R = Math.max(0.01, Physics.range(v0, th, g));
-  const H = Math.max(0.01, Physics.hmax(v0, th, g));
+  // compute totals + scale (with y0)
+  const T = Physics.tof(v0, th, g, y0);
+  const R = Math.max(0.01, Physics.range(v0, th, g, y0));
+  const H = Math.max(0.01, Physics.hmax(v0, th, g, y0));
 
-  const sx = (cv.width - 100) / R;
-  const sy = (gy - 60) / H;
-  const scale = Math.max(2, Math.min(sx, sy)); // พยายามให้พอดีจอ
+  const sx = (cv.width - 140) / R;
+  const sy = (gy - 60) / Math.max(H, y0 || 0.01);
+  const scale = Math.max(2, Math.min(sx, sy));
 
-  // draw trajectory
+  // tower (at x=0, height y0)
+  const [tx, ty0] = toScreen(0, 0, scale);
+  const [, tyTop] = toScreen(0, y0, scale);
+  const towerW = 36;
+
+  cx.fillStyle="#121c29";
+  cx.strokeStyle="#1d2a3a";
+  cx.lineWidth=1.5;
+  cx.beginPath();
+  cx.moveTo(tx - towerW/2, gy);
+  cx.lineTo(tx - towerW/2, tyTop);
+  cx.arc(tx, tyTop, towerW/2, Math.PI, 0);
+  cx.lineTo(tx + towerW/2, gy);
+  cx.closePath();
+  cx.fill(); cx.stroke();
+
+  // launcher barrel (direction = theta)
+  const thRad = th * Math.PI/180;
+  const barrelLen = 48;
+  cx.strokeStyle="#264968"; cx.lineWidth=6; cx.lineCap="round";
+  cx.beginPath();
+  cx.moveTo(tx, tyTop);
+  cx.lineTo(tx + Math.cos(thRad)*barrelLen, tyTop - Math.sin(thRad)*barrelLen);
+  cx.stroke();
+
+  // trajectory
   cx.strokeStyle = "#9cff6a";
   cx.lineWidth = 2;
   cx.beginPath();
   let first = true;
-  const dt = Math.max(0.004, T / 300); // 300 segments
+  const dt = Math.max(0.004, T / 300);
   for (let tt = 0; tt <= T + 1e-6; tt += dt) {
-    const p = Physics.pos(v0, th, g, tt);
+    const p = Physics.pos(v0, th, g, tt, y0);
     const [xx, yy] = toScreen(p.x, Math.max(0, p.y), scale);
     if (first){ cx.moveTo(xx, yy); first=false; } else { cx.lineTo(xx, yy); }
   }
@@ -274,18 +318,18 @@ function draw(){
 
   // moving ball
   const tt = clamp(t, 0, T);
-  const p = Physics.pos(v0, th, g, tt);
+  const p = Physics.pos(v0, th, g, tt, y0);
   const [bx, by] = toScreen(p.x, Math.max(0, p.y), scale);
   cx.fillStyle = "#7ae0ff";
   cx.beginPath(); cx.arc(bx, by, 5.5, 0, Math.PI*2); cx.fill();
   cx.strokeStyle="#1a3a4f"; cx.lineWidth=2; cx.stroke();
 
-  // labels (soft)
+  // labels
   cx.fillStyle = "#7f91a8";
   cx.font = "12px system-ui, -apple-system, Segoe UI, Roboto";
-  cx.fillText("0 m", 42, gy+18);
+  cx.fillText("0 m", 82, gy+18);
 
-  // metrics text (DOM)
+  // metrics (DOM)
   mR.textContent = format(R);
   mH.textContent = format(H);
   mT.textContent = format(T);
@@ -293,7 +337,7 @@ function draw(){
   oy.textContent = `${format(Math.max(0,p.y))} m`;
   ot.textContent = `${format(tt)} s`;
 
-  // update sparklines (เก็บ 60 จุดล่าสุด)
+  // sparklines
   seriesR.push(R); if(seriesR.length>60) seriesR.shift();
   seriesH.push(H); if(seriesH.length>60) seriesH.shift();
   seriesT.push(T); if(seriesT.length>60) seriesT.shift();
@@ -309,7 +353,7 @@ function tick(now){
   const elapsed = (now - tprev) / 1000;
   tprev = now;
 
-  const T = Physics.tof(v0, th, g);
+  const T = Physics.tof(v0, th, g, y0);
   t += elapsed * (speed || 1.0);
   if (t >= T){
     t = T;
@@ -330,24 +374,20 @@ function play(){
   setStatus("Running");
   requestAnimationFrame(tick);
 }
-
 function pause(){
   if (!running) return;
   running = false;
   playLabel.textContent = "Play";
   setStatus("Paused");
 }
-
 function reset(){
   pause();
   t = 0;
   setStatus("Idle");
   draw();
 }
-
 function togglePlay(){ running ? pause() : play(); }
 function toggleSpeed(){
-  // HTB vibe: default Slow 0.25; toggle Normal 1.0
   speed = (speed === 1.0) ? 0.25 : 1.0;
   speedBtn.textContent = (speed === 1.0) ? "Normal" : "Slow";
 }
@@ -356,6 +396,7 @@ function toggleSpeed(){
 v0In.addEventListener('input', () => { v0 = +v0In.value; ov0.textContent=v0In.value; reset(); });
 thIn.addEventListener('input', () => { th = +thIn.value; oth.textContent=thIn.value; reset(); });
 gIn.addEventListener('input',  () => { g  = +gIn.value;  og.textContent=gIn.value;  reset(); });
+y0In.addEventListener('input',  () => { y0 = +y0In.value; oy0.textContent=y0In.value; reset(); });
 
 playBtn.addEventListener('click', togglePlay);
 speedBtn.addEventListener('click', toggleSpeed);
@@ -363,23 +404,25 @@ resetBtn.addEventListener('click', reset);
 
 // Presets
 const PRESETS = {
-  base:  { v0:12, th:25, g:9.81 },
-  far:   { v0:20, th:45, g:9.81 },
-  steep: { v0:14, th:70, g:9.81 },
-  moon:  { v0:12, th:45, g:1.62 },
+  base:     { v0:12, th:25, g:9.81, y0:0 },
+  far:      { v0:20, th:45, g:9.81, y0:0 },
+  steep:    { v0:14, th:70, g:9.81, y0:0 },
+  moon:     { v0:12, th:45, g:1.62, y0:0 },
+  tower5:   { v0:14, th:30, g:9.81, y0:5 },
+  tower10:  { v0:14, th:25, g:9.81, y0:10 },
 };
 presetBtns.forEach(b=>{
   b.addEventListener('click', ()=>{
     const p = PRESETS[b.dataset.pre];
     if(!p) return;
-    v0In.value=p.v0; thIn.value=p.th; gIn.value=p.g;
-    ov0.textContent=p.v0; oth.textContent=p.th; og.textContent=p.g;
-    v0=p.v0; th=p.th; g=p.g;
+    v0In.value=p.v0; thIn.value=p.th; gIn.value=p.g; y0In.value=p.y0;
+    ov0.textContent=p.v0; oth.textContent=p.th; og.textContent=p.g; oy0.textContent=p.y0.toFixed(2);
+    v0=p.v0; th=p.th; g=p.g; y0=p.y0;
     reset();
   });
 });
 
-// Keyboard: Space toggle, S speed, R reset
+// Keyboard: Space/S/R
 window.addEventListener('keydown', (e)=>{
   if (e.code === 'Space'){ e.preventDefault(); togglePlay(); }
   else if (e.key === 's' || e.key === 'S'){ toggleSpeed(); }
