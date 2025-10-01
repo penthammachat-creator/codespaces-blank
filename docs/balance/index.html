@@ -6,254 +6,223 @@
 <link rel="icon" href="data:,">
 <style>
   :root{
-    --bg:#0b0f14; --panel:#0f1620; --panel-2:#121c29; --border:#1d2a3a;
-    --text:#c7d2e0; --muted:#7f91a8; --primary:#9cff6a; --accent:#7ae0ff; --danger:#ff6b6b;
-    --radius:14px; --shadow:0 10px 30px rgba(0,0,0,.45);
+    --bg:#0b0f14; --panel:#0f1620; --panel2:#121c29; --border:#1d2a3a;
+    --text:#c7d2e0; --muted:#7f91a8; --primary:#9cff6a; --accent:#7ae0ff; --radius:14px;
   }
   *{box-sizing:border-box}
   html,body{height:100%}
   body{
-    margin:0; background:radial-gradient(1200px 600px at 70% -10%,#0e1825 0%,transparent 60%),var(--bg);
+    margin:0; background:radial-gradient(1100px 560px at 70% -10%,#0e1825 0%,transparent 60%),var(--bg);
     color:var(--text); font:14px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif;
-    letter-spacing:.2px;
   }
   a{color:var(--accent); text-decoration:none}
-  .wrap{max-width:1200px; margin:24px auto; padding:0 16px}
-  .top{display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:18px}
-  .brand{display:flex; align-items:center; gap:12px}
-  .pill{display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border:1px solid var(--border);
-        border-radius:999px; background:linear-gradient(180deg,var(--panel),var(--panel-2)); color:var(--muted)}
-  .brand h1{font-size:18px; margin:0}
-  .back{opacity:.8} .back:hover{opacity:1}
+  .wrap{max-width:1100px; margin:24px auto; padding:0 16px}
 
-  .grid{display:grid; gap:16px; grid-template-columns: 1.2fr 320px}
-  @media (max-width:980px){ .grid{grid-template-columns:1fr} }
+  .top{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px}
+  .pill{display:inline-flex; gap:8px; align-items:center; padding:6px 10px; border:1px solid var(--border); border-radius:999px;
+        background:linear-gradient(180deg,var(--panel),var(--panel2)); color:#93a6be}
+  h1{margin:0; font-size:18px}
+
+  .grid{display:grid; gap:16px; grid-template-columns: 1fr 260px}
+  @media (max-width: 980px){ .grid{grid-template-columns:1fr} }
 
   .panel{
-    background:linear-gradient(180deg,var(--panel),var(--panel-2));
-    border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow);
+    border:1px solid var(--border);
+    background:linear-gradient(180deg,var(--panel),var(--panel2));
+    border-radius:var(--radius);
+    padding:14px;
   }
-  .stage{padding:12px}
-  canvas{display:block; width:100%; height:auto; background:#0a1118; border-radius:10px}
 
-  .side{padding:14px}
-  .card{border:1px solid var(--border); border-radius:12px; padding:12px; margin-bottom:12px;
-        background:radial-gradient(600px 280px at 110% -50%, #19321844 0%, transparent 55%), #0d1520;}
-  .card h3{margin:0 0 6px 0; font-size:13px; text-transform:uppercase; letter-spacing:.6px; color:#9ab3cf}
-  .row{display:flex; gap:10px; align-items:center; justify-content:space-between; margin:8px 0}
-  .muted{color:var(--muted)}
+  #board{position:relative; height:520px; background:linear-gradient(#0e2030 0 64%, #1b8030aa 64% 100%); border-radius:12px}
+  .ground{position:absolute; left:0; right:0; bottom:0; height:36%; background:linear-gradient(#1b803044,#1b803000); border-bottom-left-radius:12px; border-bottom-right-radius:12px}
 
-  .btn{appearance:none; border:1px solid var(--border); color:var(--text);
-       background:linear-gradient(180deg,#121d2a,#0f1824); padding:10px 14px; border-radius:10px; cursor:pointer;
-       font-weight:600}
-  .btn:hover{transform:translateY(-1px); border-color:#25405e}
-  .btn.warn{border-color:#3c2b2b; background:linear-gradient(180deg,#241212,#1b1010); color:#ffdcdc}
+  .pivot { position:absolute; left:50%; bottom:160px; transform:translateX(-50%); width:28px; height:120px; background:#2b3a4c; border:1px solid #375068; border-radius:6px; }
+  .pivot:after{ content:""; position:absolute; top:-10px; left:50%; transform:translateX(-50%); width:18px; height:18px; border-radius:50%; background:#cbd6e2; border:2px solid #7a8da6; }
 
-  .weights{display:flex; gap:10px; flex-wrap:wrap}
-  .weight{display:flex; align-items:center; justify-content:center; width:64px; height:64px; border-radius:12px;
-          border:1px dashed #20405a; background:#0a1118; cursor:grab; user-select:none; font-weight:800}
-  .w1{color:#cfe8ff} .w5{color:#9cff6a} .w10{color:#ffd36b}
-  .foot{margin-top:8px; text-align:center; color:var(--muted); font-size:12px}
+  .beam-wrap{ position:absolute; left:50%; bottom:220px; transform:translateX(-50%) rotate(0deg); transform-origin:50% 20px; transition:transform .15s ease-out; }
+  .beam{ width:720px; height:20px; background:#d3aa72; border:2px solid #8a6b3f; border-radius:8px; position:relative; }
+
+  .mass{ width:44px; height:44px; border-radius:8px; color:#091018; display:flex; align-items:center; justify-content:center; font-weight:800;
+         border:2px solid #1b2a3a; box-shadow:0 6px 16px #0008; position:absolute; cursor:grab; user-select:none; }
+  .mass[data-mass="1"]{background:#c7ebff}
+  .mass[data-mass="2"]{background:#9dd6ff}
+  .mass[data-mass="5"]{background:#7ae0ff}
+  .mass[data-mass="10"]{background:#9cff6a}
+  .ghost{opacity:.45; filter:saturate(.5)}
+
+  .card h3{margin:0 0 8px 0; color:#9ab3cf; text-transform:uppercase; font-size:12px; letter-spacing:.6px}
+  .palette{display:grid; grid-template-columns:repeat(2,1fr); gap:10px}
+  .palette .mass{position:relative; static:initial; border:1px dashed #2b405b; box-shadow:none; width:56px; height:56px; cursor:grab}
+  .palette .mass span{pointer-events:none}
+  .note{color:#93a6be; font-size:12px; margin-top:8px}
+
+  .hud{position:absolute; left:14px; top:14px; display:flex; gap:12px; font-size:12px; color:#a8bdd6}
+  .hud .pill{padding:6px 10px}
 </style>
 
 <div class="wrap">
   <div class="top">
-    <div class="brand">
-      <span class="pill">PHX • Mechanics</span>
-      <h1>Balancing Act (Web)</h1>
-    </div>
-    <a class="back pill" href="../index.html">← Back to Catalog</a>
+    <span class="pill">PHX • Mechanics</span>
+    <h1>Balancing Act (Web)</h1>
+    <a class="pill" href="../index.html">← Back to Catalog</a>
   </div>
 
   <div class="grid">
-    <div class="panel stage">
-      <canvas id="cv" width="1000" height="520"></canvas>
-      <div class="foot">Tip: ลากน้ำหนักจากถาดไปวางบนคาน • คลิกที่น้ำหนักบนคานเพื่อย้าย • กด Reset เพื่อล้างทั้งหมด</div>
+    <div class="panel" id="boardPanel">
+      <div id="board">
+        <div class="hud">
+          <span class="pill">Torque L: <b id="tL">0</b></span>
+          <span class="pill">Torque R: <b id="tR">0</b></span>
+          <span class="pill">Angle: <b id="ang">0°</b></span>
+        </div>
+        <div class="beam-wrap" id="beamWrap">
+          <div class="beam" id="beam"></div>
+        </div>
+        <div class="pivot"></div>
+        <div class="ground"></div>
+      </div>
     </div>
 
-    <aside class="panel side">
-      <div class="card">
-        <h3>Pivot</h3>
-        <div class="row">
-          <span class="muted">ตำแหน่งจุดหมุน</span>
-          <output id="opv">0</output>
-        </div>
-        <input id="pivot" type="range" min="-4" max="4" step="1" value="0" style="width:100%">
+    <aside class="panel">
+      <h3>Mass Palette</h3>
+      <div class="palette" id="palette">
+        <div class="mass" data-mass="1"><span>1 kg</span></div>
+        <div class="mass" data-mass="2"><span>2 kg</span></div>
+        <div class="mass" data-mass="5"><span>5 kg</span></div>
+        <div class="mass" data-mass="10"><span>10 kg</span></div>
       </div>
-
-      <div class="card">
-        <h3>Palette</h3>
-        <div class="weights">
-          <div class="weight w1"  data-m="1">1 kg</div>
-          <div class="weight w5"  data-m="5">5 kg</div>
-          <div class="weight w10" data-m="10">10 kg</div>
-        </div>
-        <div class="muted" style="margin-top:6px">ลากกล่องน้ำหนักไปยังตำแหน่งบนคาน (ช่อง –6 … +6)</div>
-      </div>
-
-      <div class="card">
-        <h3>Torques</h3>
-        <div class="row"><span class="muted">Left</span>  <strong id="tL">0.00</strong></div>
-        <div class="row"><span class="muted">Right</span> <strong id="tR">0.00</strong></div>
-        <div class="row"><span class="muted">Net</span>   <strong id="tN">0.00</strong></div>
-      </div>
-
-      <div class="card">
-        <h3>Actions</h3>
-        <button class="btn warn" id="reset">Reset</button>
-      </div>
+      <div class="note">ลากก้อนน้ำหนักจากพาเลท ไปวางบนคานได้อิสระ (ตำแหน่ง 0 คือจุดหมุน)</div>
+      <div class="note">ลากก้อนที่อยู่บนคานออกนอกคาน เพื่อเอาออก</div>
     </aside>
   </div>
 </div>
 
 <script>
-const g = 9.81;
-const SLOTS = Array.from({length:13}, (_,i)=>i-6); // -6..+6
-let pivotSlot = 0;
-let placed = []; // {id,mass,slot}
-let nextId = 1;
+const beamWrap = document.getElementById('beamWrap');
+const beam = document.getElementById('beam');
+const palette = document.getElementById('palette');
 
-const cv = document.getElementById('cv');
-const cx = cv.getContext('2d');
 const tL = document.getElementById('tL');
 const tR = document.getElementById('tR');
-const tN = document.getElementById('tN');
+const ang = document.getElementById('ang');
 
-function worldX(slot){ return 80 + (slot+6)*60; }
+const SLOT_PX = 28;
+const MAX_ANGLE = 15;
+const TORQUE_TO_ANGLE = 0.9;
 
-function draw(){
-  cx.clearRect(0,0,cv.width,cv.height);
-  cx.fillStyle = "#0b1a28"; cx.fillRect(0,cv.height-90,cv.width,90);
+const wrapRect  = () => beamWrap.getBoundingClientRect();
 
-  const {tauL,tauR,net} = torqueSum();
-  const k = 0.008;
-  const angle = Math.max(-Math.PI/10, Math.min(Math.PI/10, net * k));
+const onBeam = [];
 
-  const px = worldX(pivotSlot), py = cv.height-140;
+function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
 
-  cx.fillStyle="#1b3349"; cx.strokeStyle="#264a68"; cx.lineWidth=2;
-  cx.beginPath();
-  cx.moveTo(px-26,py+68); cx.lineTo(px+26,py+68);
-  cx.lineTo(px+14,py); cx.lineTo(px-14,py);
-  cx.closePath(); cx.fill(); cx.stroke();
-
-  cx.save();
-  cx.translate(px, py);
-  cx.rotate(angle);
-  const beamW = 60*12 + 60;
-  cx.fillStyle = "#203244"; cx.strokeStyle = "#355674";
-  cx.fillRect(-beamW/2, -10, beamW, 20);
-  cx.strokeRect(-beamW/2, -10, beamW, 20);
-
-  cx.strokeStyle="#2a4056";
-  for(const s of SLOTS){ const x = (s - pivotSlot)*60; cx.beginPath(); cx.moveTo(x, -12); cx.lineTo(x, 12); cx.stroke(); }
-  cx.fillStyle="#9cff6a"; cx.beginPath(); cx.arc(0,0,4,0,Math.PI*2); cx.fill();
-
-  for(const w of placed){ const dx = (w.slot - pivotSlot)*60; drawWeightOnBeam(dx, -22, w.mass); }
-  cx.restore();
-
-  tL.textContent = tauL.toFixed(2);
-  tR.textContent = tauR.toFixed(2);
-  tN.textContent = net.toFixed(2);
+function recalc(){
+  let L=0,R=0;
+  const centerX = beam.clientWidth/2;
+  onBeam.forEach(o=>{
+    const dx = (o.x - centerX) / SLOT_PX;
+    if(dx < 0) L += o.mass * Math.abs(dx);
+    else if(dx > 0) R += o.mass * Math.abs(dx);
+  });
+  tL.textContent = L.toFixed(2);
+  tR.textContent = R.toFixed(2);
+  const net = R - L;
+  const theta = clamp(net * TORQUE_TO_ANGLE, -MAX_ANGLE, MAX_ANGLE);
+  ang.textContent = theta.toFixed(1)+'°';
+  beamWrap.style.transform = `translateX(-50%) rotate(${theta}deg)`;
 }
 
-function drawWeightOnBeam(x,y,m){
-  cx.save(); cx.translate(x,y);
-  let col = "#cfe8ff"; if(m>=10) col="#ffd36b"; else if(m>=5) col="#9cff6a";
-  cx.fillStyle = col; cx.strokeStyle="#1c3144"; cx.lineWidth=2;
-  cx.fillRect(-18,-28,36,36); cx.strokeRect(-18,-28,36,36);
-  cx.fillStyle="#0b1a28"; cx.font="700 12px system-ui"; cx.textAlign="center";
-  cx.fillText(`${m}kg`,0,-8);
-  cx.restore();
+let dragging=null;
+
+function createMassEl(mass){
+  const el=document.createElement('div');
+  el.className='mass';
+  el.dataset.mass=mass;
+  el.innerHTML=`<span>${mass} kg</span>`;
+  return el;
 }
 
-function torqueSum(){
-  let tauL=0, tauR=0;
-  for(const w of placed){
-    const arm = (w.slot - pivotSlot);
-    const tau = w.mass * g * Math.abs(arm);
-    if (arm < 0) tauL += tau; else if (arm > 0) tauR += tau;
+function startDragFromPalette(srcEl){
+  const mass=+srcEl.dataset.mass;
+  const el=createMassEl(mass);
+  el.classList.add('ghost');
+  document.body.appendChild(el);
+  dragging={el,mass,fromPalette:true};
+}
+
+function startDragFromBeam(obj){
+  const {mass}=obj;
+  const ghost=createMassEl(mass);
+  ghost.classList.add('ghost');
+  document.body.appendChild(ghost);
+  dragging={el:ghost,mass,fromPalette:false,fromBeamObj:obj};
+  beamWrap.removeChild(obj.el);
+  const idx=onBeam.indexOf(obj);
+  if(idx>=0) onBeam.splice(idx,1);
+  recalc();
+}
+
+function onMouseMove(e){
+  if(!dragging) return;
+  const el=dragging.el;
+  el.style.position='fixed';
+  el.style.left=(e.clientX - el.offsetWidth/2)+'px';
+  el.style.top=(e.clientY - el.offsetHeight/2)+'px';
+}
+
+function cancelDrag(){
+  if(!dragging) return;
+  dragging.el.remove();
+  dragging=null;
+}
+
+function finishDrag(e){
+  if(!dragging) return;
+  const r=wrapRect();
+  const insideBeam=(e.clientX>=r.left && e.clientX<=r.right &&
+                    e.clientY>=r.top-80 && e.clientY<=r.bottom+40);
+  if(insideBeam){
+    const x=e.clientX-r.left;
+    const y=e.clientY-r.top;
+    const placed=dragging.fromPalette?createMassEl(dragging.mass):dragging.fromBeamObj.el;
+    placed.style.position='absolute';
+    placed.style.left=x+'px';
+    placed.style.top=y+'px';
+    placed.style.transform='translate(-50%,-50%)';
+    placed.onmousedown=()=>{ startDragFromBeam(objRef); bindDocHandlers(); };
+    beamWrap.appendChild(placed);
+    const objRef={el:placed,mass:dragging.mass,x,y};
+    onBeam.push(objRef);
+    recalc();
   }
-  return {tauL, tauR, net: (tauR - tauL)};
+  cancelDrag();
 }
 
-function nearestSlotByX(xCanvas){
-  const sFloat = (xCanvas - 80)/60 - 6;
-  let s = Math.round(sFloat);
-  return Math.max(-6, Math.min(6, s));
+function bindDocHandlers(){
+  document.addEventListener('mousemove',onMouseMove);
+  document.addEventListener('mouseup',(ev)=>{
+    document.removeEventListener('mousemove',onMouseMove);
+    finishDrag(ev);
+  },{once:true});
 }
 
-function placeMass(mass, slot){
-  if (slot === pivotSlot) return false;
-  placed.push({id: nextId++, mass, slot});
-  return true;
-}
-
-/* ---- drag from palette ---- */
-let dragging = null;
-
-document.querySelectorAll('.weight').forEach(el=>{
-  el.addEventListener('pointerdown', e=>{
-    dragging = { type:"palette", mass:+el.dataset.m };
-    el.setPointerCapture(e.pointerId);
+palette.querySelectorAll('.mass').forEach(m=>{
+  m.addEventListener('mousedown',()=>{
+    startDragFromPalette(m);
+    bindDocHandlers();
   });
 });
 
-/* ---- drag from beam ---- */
-cv.addEventListener('pointerdown', e=>{
-  const pt = cv.getBoundingClientRect();
-  const x = e.clientX - pt.left;
-  const slot = nearestSlotByX(x);
-  for(let i=placed.length-1;i>=0;i--){
-    if(placed[i].slot === slot){
-      dragging = { type:"beam", mass:placed[i].mass, fromIndex:i, id:placed[i].id };
-      placed.splice(i,1); draw(); break;
-    }
-  }
+beamWrap.addEventListener('mousedown',(e)=>{
+  const el=e.target.closest('.mass');
+  if(!el) return;
+  const obj=onBeam.find(o=>o.el===el);
+  if(!obj) return;
+  startDragFromBeam(obj);
+  bindDocHandlers();
 });
 
-window.addEventListener('pointermove', e=>{
-  if(!dragging) return;
-  draw();
-  const pt = cv.getBoundingClientRect();
-  const x = e.clientX - pt.left;
-  const slot = nearestSlotByX(x);
-  cx.save();
-  const px = worldX(pivotSlot), py = cv.height-140;
-  cx.translate(px,py);
-  const dx = (slot - pivotSlot)*60;
-  drawGhost(dx, -26, dragging.mass);
-  cx.restore();
-});
-
-function drawGhost(x,y,m){
-  cx.save(); cx.translate(x,y);
-  cx.setLineDash([4,4]); cx.strokeStyle="#6aa0c9"; cx.lineWidth=2;
-  cx.strokeRect(-18,-28,36,36);
-  cx.fillStyle="#6aa0c966"; cx.fillRect(-18,-28,36,36);
-  cx.fillStyle="#9cc9ff"; cx.font="700 12px system-ui"; cx.textAlign="center";
-  cx.fillText(`${m}kg`,0,-8);
-  cx.restore();
-}
-
-window.addEventListener('pointerup', e=>{
-  if(!dragging) return;
-  const pt = cv.getBoundingClientRect();
-  const inside = (e.clientX >= pt.left && e.clientX <= pt.right && e.clientY >= pt.top && e.clientY <= pt.bottom);
-  if(!inside){ dragging=null; draw(); return; }
-  const x = e.clientX - pt.left;
-  const s = nearestSlotByX(x);
-  if (s === pivotSlot){ dragging=null; draw(); return; }
-  placeMass(dragging.mass, s);
-  dragging=null; draw();
-});
-
-/* ---- controls ---- */
-const pivotIn = document.getElementById('pivot');
-const opv = document.getElementById('opv');
-pivotIn.addEventListener('input', ()=>{ pivotSlot=+pivotIn.value; opv.textContent=pivotSlot; draw(); });
-document.getElementById('reset').addEventListener('click', ()=>{ placed=[]; pivotSlot=0; pivotIn.value=0; opv.textContent="0"; draw(); });
-
-draw();
+window.addEventListener('resize', recalc);
+recalc();
 </script>
 </html>
